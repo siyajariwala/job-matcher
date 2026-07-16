@@ -1,5 +1,6 @@
 from sentence_transformers import SentenceTransformer
 import math
+import pdfplumber
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
@@ -10,21 +11,35 @@ def cosine_similarity(a,b):
     magnitude_b = math.sqrt(sum(y**2 for y in b))
     return dot_product / (magnitude_a * magnitude_b)
 
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() + "\n"
+    return text
+
 job_description = """
-We are looking for a Software Engineer Intern with experience 
-in Python, React, and building RAG pipelines using vector 
-databases. Experience with FastAPI and LLM integration is a plus.
+PASTE THE FULL JOB DESCRIPTION HERE
 """
 
-resume = """
-Built an end-to-end RAG pipeline using Python, FastAPI, and 
-ChromaDB. Shipped production React components at a SaaS startup. 
-Experience integrating Claude and Groq LLM APIs.
-"""
+resume_path = input("Enter the path to your resume PDF: ")
+resume = extract_text_from_pdf(resume_path)
 
+# Ask user for job description
+print("Paste the job description, then press Enter twice when done:")
+job_description = ""
+while True:
+    line = input()
+    if line == "":
+        break
+    job_description += line + " "
+    
+    
 # take the job description and resume and encode them into embeddings using the embeddings model 
 job_embedding = model.encode(job_description)
 resume_embedding = model.encode(resume)
+
+
 
 score = cosine_similarity(job_embedding, resume_embedding)
 
